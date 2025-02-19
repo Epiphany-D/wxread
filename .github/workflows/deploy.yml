@@ -31,6 +31,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install certifi==2024.8.30 charset-normalizer==3.4.0 idna==3.10 requests==2.32.3 urllib3==2.2.3
 
+    - name: Set READ_NUM
+      id: set-readnum
+      run: |
+        if [ "${{ github.event_name }}" == "schedule" ]; then
+          case "${{ github.event.schedule }}" in
+            '0 17 * * *') echo "READ_NUM=${{ vars.READ_NUM1 }}" >> $GITHUB_OUTPUT ;;
+            '0 4 * * *') echo "READ_NUM=${{ vars.READ_NUM2 }}" >> $GITHUB_OUTPUT ;;
+            *) echo "READ_NUM=${{ vars.READ_NUM1 }}" >> $GITHUB_OUTPUT ;;
+          esac
+        else
+          echo "READ_NUM=${{ vars.READ_NUM1 }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Run deployment script
       env:
         WXREAD_CURL_BASH: ${{ secrets.WXREAD_CURL_BASH }}
@@ -39,8 +52,7 @@ jobs:
         WXPUSHER_SPT: ${{ secrets.WXPUSHER_SPT }}
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        READ_NUM1: ${{ vars.READ_NUM1 }}  # 使用 Repository Variables
-        READ_NUM2: ${{ vars.READ_NUM2 }}  # 使用 Repository Variables
+        READ_NUM: ${{ steps.set-readnum.outputs.READ_NUM }}
 
       run: |
         python main.py
